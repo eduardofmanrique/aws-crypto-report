@@ -19,7 +19,7 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
       with:
-        terraform_version: 1.5.7 # Specify your Terraform version
+        terraform_version: 1.5.7
 
     - name: Initialize Terraform
       run: terraform init
@@ -39,3 +39,10 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: terraform apply -auto-approve
+
+    - name: Save Terraform State
+      if: github.event_name == 'push'
+      uses: actions/upload-artifact@v3
+      with:
+        name: terraform-state
+        path: terraform.tfstate
