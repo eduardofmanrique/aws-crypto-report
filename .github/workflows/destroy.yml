@@ -20,7 +20,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: terraform-state
-        run-id: ${{ github.event.workflow_run.id }}
+        run-id: ${{ github.event.inputs.run_id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Setup Terraform
