@@ -2,6 +2,11 @@ name: Terraform Destroy
 
 on:
   workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'ID of the previous workflow run'
+        required: true
+        type: string
 
 jobs:
   destroy:
@@ -12,9 +17,11 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Download Terraform State
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: terraform-state
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
