@@ -41,7 +41,6 @@ jobs:
       run: terraform apply -auto-approve
 
     - name: Save Terraform State
-      if: github.event_name == 'push'
       uses: actions/upload-artifact@v3
       with:
         name: terraform-state
