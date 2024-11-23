@@ -9,4 +9,5 @@ resource "aws_s3_bucket" "example" {
 resource "random_string" "suffix" {
   length  = 8
   special = false
+  upper   = false  # Ensures the string is all lowercase
 }
