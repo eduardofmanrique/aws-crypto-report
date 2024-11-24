@@ -11,23 +11,30 @@ terraform {
   }
 }
 
-resource "random_string" "suffix" {
+# Generate random suffix for the first bucket
+resource "random_string" "suffix_1" {
   length  = 10
   special = false
   upper   = false  # Ensure no uppercase letters
 }
 
-resource "aws_s3_bucket" "example" {
-  bucket = "my-example-bucket-${lower(random_string.suffix.result)}"
-}
-
-resource "random_string2" "suffix" {
+# Generate random suffix for the second bucket
+resource "random_string" "suffix_2" {
   length  = 10
   special = false
   upper   = false  # Ensure no uppercase letters
 }
 
-resource "aws_s3_bucket2" "example2" {
-  bucket = "my-example-bucket2-${lower(random_string2.suffix.result)}"
+# Create the first S3 bucket
+resource "aws_s3_bucket" "example_1" {
+  bucket = "my-example-bucket-1-${lower(random_string.suffix_1.result)}"
+  acl    = "private"
 }
+
+# Create the second S3 bucket
+resource "aws_s3_bucket" "example_2" {
+  bucket = "my-example-bucket-2-${lower(random_string.suffix_2.result)}"
+  acl    = "private"
+}
+
 
