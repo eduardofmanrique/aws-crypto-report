@@ -20,3 +20,14 @@ resource "random_string" "suffix" {
 resource "aws_s3_bucket" "example" {
   bucket = "my-example-bucket-${lower(random_string.suffix.result)}"
 }
+
+resource "random_string2" "suffix" {
+  length  = 10
+  special = false
+  upper   = false  # Ensure no uppercase letters
+}
+
+resource "aws_s3_bucket2" "example2" {
+  bucket = "my-example-bucket2-${lower(random_string2.suffix.result)}"
+}
+
