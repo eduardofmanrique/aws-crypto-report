@@ -2,14 +2,15 @@ provider "aws" {
   region = "sa-east-1"
 }
 
-resource "aws_s3_bucket" "example" {
-  bucket = "aws-crypto-report-example-bucket"
+terraform {
+  backend "s3" {
+    bucket         = "aws-alerts-config-bucket"
+    key            = "terraform/state/terraform.tfstate"
+    region         = "sa-east-1"
+    encrypt        = true
+  }
 }
 
-resource "aws_s3_bucket_versioning" "example" {
-  bucket = aws_s3_bucket.example.id
-
-  versioning_configuration {
-    status = "Enabled"
-  }
+resource "aws_s3_bucket" "example" {
+  bucket = "aws-crypto-report-example-bucket"
 }

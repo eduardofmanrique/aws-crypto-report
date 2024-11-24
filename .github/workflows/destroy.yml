@@ -2,11 +2,6 @@ name: Terraform Destroy
 
 on:
   workflow_dispatch:
-    inputs:
-      run_id:
-        description: 'ID of the previous workflow run'
-        required: true
-        type: string
 
 jobs:
   destroy:
@@ -16,19 +11,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Download Terraform State
-      uses: actions/download-artifact@v4
-      with:
-        name: terraform-state
-        run-id: ${{ github.event.inputs.run_id }}
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
       with:
         terraform_version: 1.5.7
 
-    - name: Initialize Terraform
+    - name: Initialize Terraform with S3 Backend
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: terraform init
 
     - name: Terraform Destroy
