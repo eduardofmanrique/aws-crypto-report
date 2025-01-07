@@ -34,7 +34,7 @@ resource "aws_iam_policy_attachment" "lambda_basic_policy" {
 }
 
 resource "aws_lambda_function" "example" {
-  function_name = "simple-lambda"
+  function_name = "simple-lambda-test"
   role          = aws_iam_role.lambda_role.arn
   handler       = "main.handler"
   runtime       = "python3.9"
