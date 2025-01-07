@@ -2,15 +2,6 @@ provider "aws" {
   region = "sa-east-1"
 }
 
-terraform {
-  backend "s3" {
-    bucket         = "aws-alerts-config-bucket"
-    key            = "terraform/state/terraform.tfstate"
-    region         = "sa-east-1"
-    encrypt        = true
-  }
-}
-
 resource "aws_iam_role" "lambda_role" {
   name               = "lambda-basic-role"
   assume_role_policy = jsonencode({
@@ -36,9 +27,8 @@ resource "aws_iam_policy_attachment" "lambda_basic_policy" {
 resource "aws_lambda_function" "example" {
   function_name = "simple-lambda"
   role          = aws_iam_role.lambda_role.arn
-  handler       = "index.handler"
+  handler       = "main.handler"
   runtime       = "python3.9"
   filename      = "lambda.zip"
   source_code_hash = filebase64sha256("lambda.zip")
 }
-
