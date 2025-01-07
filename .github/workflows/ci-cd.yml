@@ -17,15 +17,26 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Install Dependencies
+      run: |
+        cd lambda
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt -t .  # Install dependencies locally inside the lambda directory
+
+    - name: Zip Lambda code
+      run: |
+        cd lambda
+        zip -r ../lambda.zip .  # Zip all files in the lambda directory
+
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
       with:
         terraform_version: 1.5.7
-
-    - name: Zip Lambda Code
-      run: |
-        cd lambda
-        zip -r ../lambda.zip .
 
     - name: Initialize Terraform with S3 Backend
       env:
