@@ -2,6 +2,15 @@ provider "aws" {
   region = "sa-east-1"
 }
 
+terraform {
+  backend "s3" {
+    bucket         = "aws-alerts-config-bucket"
+    key            = "terraform/state/terraform.tfstate"
+    region         = "sa-east-1"
+    encrypt        = true
+  }
+}
+
 resource "aws_iam_role" "lambda_role" {
   name               = "lambda-basic-role"
   assume_role_policy = jsonencode({
