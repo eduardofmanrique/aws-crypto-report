@@ -5,7 +5,7 @@ provider "aws" {
 terraform {
   backend "s3" {
     bucket         = "aws-alerts-config-bucket"
-    key            = "terraform/state/terraform.tfstate"
+    key            = "crypto_report/terraform/state/terraform.tfstate"
     region         = "sa-east-1"
     encrypt        = true
   }
