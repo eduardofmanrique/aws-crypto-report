@@ -17,16 +17,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.9
-
-    - name: Install Dependencies
+    - name: Install Dependencies for Layer
       run: |
-        cd lambda
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt -t .  # Install dependencies locally inside the lambda directory
+        mkdir -p python
+        pip install numpy pandas requests plotly jinja2 kaleido -t python
+        zip -r lambda_dependencies.zip python
+        rm -rf python
+
+    - name: Upload Dependencies Zip for Terraform
+      run: mv lambda_dependencies.zip ../lambda_dependencies.zip
 
     - name: Zip Lambda code
       run: |

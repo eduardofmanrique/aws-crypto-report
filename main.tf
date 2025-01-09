@@ -33,6 +33,12 @@ resource "aws_iam_policy_attachment" "lambda_basic_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+resource "aws_lambda_layer_version" "dependencies_layer" {
+  filename   = "lambda_dependencies.zip"
+  layer_name = "lambda-dependencies"
+  compatible_runtimes = ["python3.9"]
+}
+
 resource "aws_lambda_function" "example" {
   function_name = "lambda-crypto-report"
   role          = aws_iam_role.lambda_role.arn
@@ -40,4 +46,5 @@ resource "aws_lambda_function" "example" {
   runtime       = "python3.9"
   filename      = "lambda.zip"
   source_code_hash = filebase64sha256("lambda.zip")
+  layers        = [aws_lambda_layer_version.dependencies_layer.arn]
 }
