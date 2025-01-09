@@ -21,7 +21,7 @@ jobs:
       run: |
         mkdir -p python
         pip install numpy pandas requests plotly jinja2 kaleido -t python
-        zip -r lambda_dependencies.zip python
+        zip -r ../lambda_dependencies.zip python
         rm -rf python
 
     - name: Upload Dependencies Zip for Terraform
