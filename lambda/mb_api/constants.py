@@ -1,0 +1,1 @@
+MB_API_URL = "https://api.mercadobitcoin.net/api"
