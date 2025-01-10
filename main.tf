@@ -47,5 +47,8 @@ resource "aws_lambda_function" "example" {
   runtime       = "python3.9"
   filename      = "lambda.zip"
   source_code_hash = filebase64sha256("lambda.zip")
-  layers        = [aws_lambda_layer_version.dependencies_layer.arn]
+  layers        = [
+    aws_lambda_layer_version.dependencies_layer.arn,
+    "arn:aws:lambda:sa-east-1:123456789012:layer:pandas-layer:1"
+  ]
 }
