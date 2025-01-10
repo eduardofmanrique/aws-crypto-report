@@ -17,15 +17,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+
     - name: Install Dependencies for Layer
       run: |
         mkdir -p python
-        pip install numpy pandas requests plotly jinja2 kaleido -t python
-        zip -r ../lambda_dependencies.zip python
+        pip install -r lambda/requirements.txt -t python
+        zip -r lambda_dependencies.zip python
         rm -rf python
+        mv lambda_dependencies.zip terraform/lambda_dependencies.zip
 
-    - name: Upload Dependencies Zip for Terraform
-      run: mv lambda_dependencies.zip ../lambda_dependencies.zip
 
     - name: Zip Lambda code
       run: |
