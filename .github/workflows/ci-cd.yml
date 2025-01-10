@@ -24,7 +24,6 @@ jobs:
         pip install -r lambda/requirements.txt -t python
         zip -r lambda_dependencies.zip python
         rm -rf python
-        mv lambda_dependencies.zip terraform/lambda_dependencies.zip
 
 
     - name: Zip Lambda code
