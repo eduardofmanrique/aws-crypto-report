@@ -34,8 +34,7 @@ resource "aws_iam_policy_attachment" "lambda_basic_policy" {
 }
 
 resource "aws_lambda_layer_version" "dependencies_layer" {
-  s3_bucket = "aws-alerts-config-bucket"
-  s3_key    = "layers/lambda_dependencies.zip"
+  filename   = "lambda_dependencies.zip"
   layer_name = "lambda-dependencies"
   compatible_runtimes = ["python3.9"]
 }
