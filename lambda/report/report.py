@@ -1,5 +1,7 @@
 import pandas as pd
-import plotly.graph_objects as go
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from matplotlib.ticker import MaxNLocator
 from io import BytesIO
 import base64
 from jinja2 import Environment, FileSystemLoader
@@ -67,19 +69,46 @@ class CryptoReport:
         for crypto in list(df['symbol'].unique()):
             df_crypto = df[df['symbol'] == crypto]
             df_crypto = df_crypto.sort_values('t')
-            fig = go.Figure(data=[go.Candlestick(
-                x=df_crypto['t'],
-                open=df_crypto['o'],
-                high=df_crypto['h'],
-                low=df_crypto['l'],
-                close=df_crypto['c']
-            )])
-            fig.update_layout(title="Candlestick Chart", xaxis_title="Date", yaxis_title="Price")
+            # Create the figure and axis
+            fig, ax = plt.subplots(figsize=(10, 6))
 
+            # Convert the dates to numeric format (matplotlib expects this)
+            df_crypto['t'] = mdates.date2num(df_crypto['t'])
+
+            # Plot candlesticks
+            for i in range(len(df_crypto)):
+                row = df_crypto.iloc[i]
+                color = 'green' if row['c'] > row['o'] else 'red'
+
+                # Plot the candlestick body
+                ax.plot([row['t'], row['t']], [row['l'], row['h']], color='black')  # High to Low line
+                ax.plot([row['t'], row['t']], [row['o'], row['c']], color=color, lw=6)  # Open to Close line
+
+            # Format x-axis as dates
+            ax.xaxis.set_major_locator(mdates.DayLocator())
+            ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+            ax.xaxis.set_minor_locator(mdates.HourLocator(interval=6))
+            plt.xticks(rotation=45)
+
+            # Title and labels
+            ax.set_title("Candlestick Chart")
+            ax.set_xlabel("Date")
+            ax.set_ylabel("Price")
+
+            # Improve layout and show grid
+            ax.grid(True)
+            fig.tight_layout()
+
+            # Save the chart to a BytesIO buffer
             img_buffer = BytesIO()
-            fig.write_image(img_buffer, format="png")
+            plt.savefig(img_buffer, format='png', bbox_inches='tight')
             img_buffer.seek(0)
+
+            # Encode the chart in base64
             chart_base64 = base64.b64encode(img_buffer.read()).decode('utf-8')
+
+            # Close the plt figure to free up memory
+            plt.close(fig)
 
             data.append({
                 "symbol": crypto,
