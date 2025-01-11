@@ -1,5 +1,5 @@
 import pandas as pd
-import mplfinance as mpf
+import plotly.graph_objects as go
 from io import BytesIO
 import base64
 from jinja2 import Environment, FileSystemLoader
@@ -67,28 +67,19 @@ class CryptoReport:
         for crypto in list(df['symbol'].unique()):
             df_crypto = df[df['symbol'] == crypto]
             df_crypto = df_crypto.sort_values('t')
-            df_crypto.set_index('t', inplace=True)
-            df_crypto = df_crypto.rename(columns={
-                't': 'Date',
-                'o': 'Open',
-                'h': 'High',
-                'l': 'Low',
-                'c': 'Close'
-            })
-            img_buffer = BytesIO()
-            mpf.plot(
-                df_crypto,
-                type='candle',
-                style='charles',
-                title="Candlestick Chart",
-                ylabel="Price",
-                savefig=dict(fname=img_buffer, format='png', bbox_inches='tight')
-            )
+            fig = go.Figure(data=[go.Candlestick(
+                x=df_crypto['t'],
+                open=df_crypto['o'],
+                high=df_crypto['h'],
+                low=df_crypto['l'],
+                close=df_crypto['c']
+            )])
+            fig.update_layout(title="Candlestick Chart", xaxis_title="Date", yaxis_title="Price")
 
-            # Reset buffer position and encode chart in base64
+            img_buffer = BytesIO()
+            fig.write_image(img_buffer, format="png")
             img_buffer.seek(0)
             chart_base64 = base64.b64encode(img_buffer.read()).decode('utf-8')
-            print(chart_base64)
 
             data.append({
                 "symbol": crypto,
