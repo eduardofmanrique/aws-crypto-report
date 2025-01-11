@@ -17,13 +17,20 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-
     - name: Install Dependencies for Layer
       run: |
         mkdir -p python
         pip install -r lambda/requirements.txt -t python
         zip -r lambda_dependencies.zip python
         rm -rf python
+
+    - name: Upload dependencies to S3
+      run: |
+        aws s3 cp lambda_dependencies.zip s3://aws-alerts-config-bucket/crypto_report/dependencies/lambda_dependencies.zip
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
 
     - name: Zip Lambda code
       run: |
