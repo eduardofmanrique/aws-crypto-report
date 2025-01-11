@@ -62,12 +62,9 @@ resource "aws_lambda_function" "example" {
   runtime       = "python3.9"
   filename      = "lambda.zip"
   source_code_hash = filebase64sha256("lambda.zip")
-  timeout       = 30
+  timeout       = 120
   memory_size   = 1024
   ephemeral_storage {
     size = 1024
   }
-  layers        = [
-    "arn:aws:lambda:sa-east-1:336392948345:layer:AWSSDKPandas-Python39:29"
-  ]
 }
