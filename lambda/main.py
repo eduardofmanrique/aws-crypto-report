@@ -6,7 +6,7 @@ import sys
 
 # Set the S3 bucket and object path
 S3_BUCKET_NAME = "aws-alerts-config-bucket"
-S3_OBJECT_KEY = "/crypto_report/dependencies/lambda_dependencies.zip"
+S3_OBJECT_KEY = "crypto_report/dependencies/lambda_dependencies.zip"
 TMP_DIR = "/tmp"
 
 # Download and unzip the dependencies
