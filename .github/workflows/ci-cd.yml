@@ -22,15 +22,20 @@ jobs:
         mkdir -p python
         pip install -r lambda/requirements.txt -t python
         zip -r lambda_dependencies.zip python
+        rm -rf python
 
-    - name: Zip Lambda code with Dependencies
+    - name: Upload dependencies to S3
       run: |
-        mkdir -p lambda_package
-        mv lambda_dependencies.zip lambda_package/
-        cp -r lambda/* lambda_package/
-        cd lambda_package
-        zip -r ../lambda.zip .
-        cd ..
+        aws s3 cp lambda_dependencies.zip s3://aws-alerts-config-bucket/crypto_report/dependencies/lambda_dependencies.zip
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+
+    - name: Zip Lambda code
+      run: |
+        cd lambda
+        zip -r ../lambda.zip .  # Zip all files in the lambda directory
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
