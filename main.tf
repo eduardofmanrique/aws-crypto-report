@@ -55,6 +55,12 @@ resource "aws_iam_policy_attachment" "lambda_s3_policy_attachment" {
   policy_arn = aws_iam_policy.s3_access_policy.arn
 }
 
+resource "aws_lambda_layer_version" "dependencies_layer" {
+  filename   = "lambda_dependencies.zip"
+  layer_name = "lambda-dependencies"
+  compatible_runtimes = ["python3.9"]
+}
+
 resource "aws_lambda_function" "example" {
   function_name = "lambda-crypto-report"
   role          = aws_iam_role.lambda_role.arn
@@ -68,6 +74,7 @@ resource "aws_lambda_function" "example" {
     size = 1024
   }
   layers        = [
-    "arn:aws:lambda:sa-east-1:336392948345:layer:AWSSDKPandas-Python39:29"
+    "arn:aws:lambda:sa-east-1:336392948345:layer:AWSSDKPandas-Python39:29",
+    aws_lambda_layer_version.dependencies_layer.arn
   ]
 }
