@@ -27,7 +27,6 @@ class MbApiHandler:
                     headers=None if not authenticated else {
                         'Authorization': f'Bearer {self.__mb_auth.access_token}'
                     },
-
                     **kwargs
                 )
                 r.raise_for_status()

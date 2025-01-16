@@ -1,10 +1,7 @@
 import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-from matplotlib.ticker import MaxNLocator
-from io import BytesIO
+from fpdf import FPDF
 import base64
-from jinja2 import Environment, FileSystemLoader
+import io
 
 from mb_api.auth import MbAuthenticator
 from mb_api.resources.account import Account
@@ -22,11 +19,11 @@ class CryptoReport:
         df = (
             pd
             .DataFrame(balance)
-            .assign(symbol=lambda x: x['symbol']+'-BRL',
-                    total=lambda x: x['total'].astype(float)
-                    )
-            .query('total>0')
+            .assign(symbol=lambda x: x['symbol'] + '-BRL',
+                    total=lambda x: x['total'].astype(float))
+            .query('total > 0 or symbol in ["BTC-BRL", "ETH-BRL"]')
         )
+
         public_data_resource = PublicData(self.__mb_auth)
         tickers = list(df['symbol'])
         tickers_price = public_data_resource.list_tickers(symbols=tickers)
@@ -38,100 +35,84 @@ class CryptoReport:
                    right_on='pair')
         )
 
-        dfs_candle = []
-        for ticker in tickers:
-            tickers_candle = public_data_resource.list_candles(symbol=ticker,
-                                                               resolution='1h',
-                                                               to_timestamp=9999999999,
-                                                               countback=75)
-            df_tickers_candle = pd.DataFrame(tickers_candle)
-            df_tickers_candle['symbol'] = ticker
-            dfs_candle.append(df_tickers_candle)
-        df_candle = pd.concat(dfs_candle)
-        df = df_candle.merge(right=df,
-                             how='left',
-                             on='symbol')
         return df
 
     def transform_data(self, df: pd.DataFrame) -> pd.DataFrame:
+        # Perform transformations and formatting in one step
         df = (
             df
             .apply(pd.to_numeric, errors='ignore')
-            .assign(t=lambda x: pd.to_datetime(x['t'], unit='s'),
-                    variation=lambda x: (x['last']/x['open'])-1,
-                    value=lambda x: x['last']*x['total'],
-                    mktvalue=lambda x: x['vol']*x['last'])
+            .assign(
+                variation=lambda x: ((x['last'] / x['open']) - 1).apply(lambda y: f"{y:.2%}".replace(".", ",")),
+                value=lambda x: (x['last'] * x['total']),
+                mktvalue=lambda x: (x['vol'] * x['last']),
+                vol=lambda x: x['vol'].apply(
+                    lambda y: f"{y:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")),
+                last=lambda x: x['last'].apply(
+                    lambda y: f"{y:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")),
+            )
+            .sort_values(by='mktvalue', ascending=False)
         )
-        return df.sort_values(by='mktvalue', ascending=False)
+        return df
 
     def gen_pdf(self, df: pd.DataFrame):
-        data = []
-        for crypto in list(df['symbol'].unique()):
-            df_crypto = df[df['symbol'] == crypto]
-            df_crypto = df_crypto.sort_values('t')
-            # Create the figure and axis
-            fig, ax = plt.subplots(figsize=(10, 6))
 
-            # Convert the dates to numeric format (matplotlib expects this)
-            df_crypto['t'] = mdates.date2num(df_crypto['t'])
+        df = (df
+              .copy()
+              .sort_values('value', ascending=False)
+              .assign(value= lambda x: x['value'].apply(lambda y: f"{y:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))))
 
-            # Plot candlesticks
-            for i in range(len(df_crypto)):
-                row = df_crypto.iloc[i]
-                color = 'green' if row['c'] > row['o'] else 'red'
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
 
-                # Plot the candlestick body
-                ax.plot([row['t'], row['t']], [row['l'], row['h']], color='black')  # High to Low line
-                ax.plot([row['t'], row['t']], [row['o'], row['c']], color=color, lw=6)  # Open to Close line
+        pdf.set_font("Arial", style="B", size=14)
+        pdf.cell(0, 10, txt="Cryptocurrency Report", ln=True, align="C")
+        pdf.ln(10)
 
-            # Format x-axis as dates
-            ax.xaxis.set_major_locator(mdates.DayLocator())
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-            ax.xaxis.set_minor_locator(mdates.HourLocator(interval=6))
-            plt.xticks(rotation=45)
+        col_widths = [30, 40, 40, 40, 40]
+        headers = ["Symbol", "Value", "Variation", "Volume", "Last"]
+        table_width = sum(col_widths)
+        margin = (210 - table_width) / 2
 
-            # Title and labels
-            ax.set_title("Candlestick Chart")
-            ax.set_xlabel("Date")
-            ax.set_ylabel("Price")
+        pdf.set_fill_color(200, 200, 200)
+        pdf.set_font("Arial", style="B", size=12)
+        pdf.set_x(margin)  # Center table
+        for header, width in zip(headers, col_widths):
+            pdf.cell(width, 10, txt=header, border=1, align="C", fill=True)
+        pdf.ln()
 
-            # Improve layout and show grid
-            ax.grid(True)
-            fig.tight_layout()
+        pdf.set_font("Arial", size=10)
+        fill = False  # Toggle fill color
+        for _, row in df.iterrows():
+            pdf.set_x(margin)  # Center table
+            pdf.set_fill_color(240, 240, 240)  # Light gray for alternating rows
+            pdf.cell(col_widths[0], 10, txt=row['symbol'], border=1, align="C", fill=fill)
+            pdf.cell(col_widths[1], 10, txt=row['value'], border=1, align="C", fill=fill)
+            pdf.cell(col_widths[2], 10, txt=row['variation'], border=1, align="C", fill=fill)
+            pdf.cell(col_widths[3], 10, txt=row['vol'], border=1, align="C", fill=fill)
+            pdf.cell(col_widths[4], 10, txt=row['last'], border=1, align="C", fill=fill)
+            pdf.ln()
+            fill = not fill
 
-            # Save the chart to a BytesIO buffer
-            img_buffer = BytesIO()
-            plt.savefig(img_buffer, format='png', bbox_inches='tight')
-            img_buffer.seek(0)
+        pdf_buffer = io.BytesIO()
+        pdf.output(pdf_buffer)
+        pdf_buffer.seek(0)
 
-            # Encode the chart in base64
-            chart_base64 = base64.b64encode(img_buffer.read()).decode('utf-8')
-
-            # Close the plt figure to free up memory
-            plt.close(fig)
-
-            data.append({
-                "symbol": crypto,
-                "value": df_crypto['value'].iloc[0],
-                "variation": df_crypto['variation'].iloc[0],
-                "vol": df_crypto['vol'].iloc[0],
-                "last": df_crypto['last'].iloc[0],
-                "chart_image": chart_base64
-            })
-
-        env = Environment(loader=FileSystemLoader("report"))
-        template = env.get_template("template.html")
-
-        html_content = template.render(data=data, percent="%")
-        print(html_content)
-        with open('crypto_report.html', "w", encoding="utf-8") as f:
-            f.write(html_content)
+        base64_pdf = base64.b64encode(pdf_buffer.read()).decode('utf-8')
+        return base64_pdf
 
     def gen_text(self, df: pd.DataFrame):
-        pass
+        data = (df[['symbol', 'last', 'variation']]
+                .drop_duplicates()
+                .to_dict(orient='records'))
+        return "\n".join([f"{item['symbol']} | R$ {item['last']} | {item['variation']}" for item in data])
 
     def gen_report(self):
         df = self.get_data()
         df = self.transform_data(df)
-        self.gen_pdf(df)
+        return {
+            'pdf': self.gen_pdf(df),
+            'text': self.gen_text(df)
+        }
 
