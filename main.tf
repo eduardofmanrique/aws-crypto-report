@@ -30,7 +30,7 @@ resource "aws_iam_role" "lambda_role" {
 resource "aws_iam_policy_attachment" "lambda_basic_policy" {
   name       = "lambda-basic-policy-attachment"
   roles      = [aws_iam_role.lambda_role.name]
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole-crypto-report"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
 resource "aws_lambda_layer_version" "dependencies_layer" {
@@ -40,7 +40,7 @@ resource "aws_lambda_layer_version" "dependencies_layer" {
 }
 
 resource "aws_lambda_function" "example" {
-  function_name = "lambda-whatsapp-api"
+  function_name = "lambda-crypto-report"
   role          = aws_iam_role.lambda_role.arn
   handler       = "main.handler"
   runtime       = "python3.9"
