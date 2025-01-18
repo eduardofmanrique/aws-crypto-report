@@ -33,6 +33,27 @@ resource "aws_iam_policy_attachment" "lambda_basic_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+resource "aws_iam_policy" "lambda_sqs_send_message" {
+  name        = "lambda-sqs-send-message-policy"
+  description = "Policy allowing Lambda to send messages to the SQS queue"
+  policy      = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action   = "sqs:SendMessage"
+        Effect   = "Allow"
+        Resource = "arn:aws:sqs:sa-east-1:341669644478:whatsapp-api-queue"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy_attachment" "lambda_sqs_send_message_attachment" {
+  name       = "lambda-sqs-send-message-attachment"
+  roles      = [aws_iam_role.lambda_role.name]
+  policy_arn = aws_iam_policy.lambda_sqs_send_message.arn
+}
+
 resource "aws_lambda_layer_version" "dependencies_layer" {
   filename   = "lambda_dependencies.zip"
   layer_name = "lambda-dependencies-crypto-report"
@@ -52,12 +73,6 @@ resource "aws_lambda_function" "example" {
     "arn:aws:lambda:sa-east-1:336392948345:layer:AWSSDKPandas-Python39:29",
     aws_lambda_layer_version.dependencies_layer.arn
   ]
-}
-
-resource "aws_iam_policy_attachment" "lambda_sqs_full_access" {
-  name       = "lambda-sqs-full-access-attachment"
-  roles      = [aws_iam_role.lambda_role.name]
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
 }
 
 resource "aws_cloudwatch_event_rule" "every_2_minutes" {
