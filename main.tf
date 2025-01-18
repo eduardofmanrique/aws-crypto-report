@@ -37,6 +37,12 @@ resource "aws_iam_role_policy_attachment" "lambda_sqs_full_access_crypto_report"
   policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
 }
 
+resource "aws_iam_role_policy_attachment" "lambda_ssm_read_only_crypto_report" {
+  role       = aws_iam_role.lambda_role_crypto_report.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
+}
+
+
 resource "aws_lambda_layer_version" "dependencies_layer_crypto_report" {
   filename            = "lambda_dependencies.zip"
   layer_name          = "lambda-dependencies-crypto-report"
@@ -59,14 +65,14 @@ resource "aws_lambda_function" "lambda_crypto_report" {
 }
 
 
-resource "aws_cloudwatch_event_rule" "every_2_minutes_crypto_report" {
-  name        = "lambda-trigger-every-2-minutes"
-  description = "Trigger Lambda every 2 minutes"
-  schedule_expression = "rate(2 minutes)"
+resource "aws_cloudwatch_event_rule" "every_20_minutes_crypto_report" {
+  name        = "lambda-trigger-every-20-minutes"
+  description = "Trigger Lambda every 20 minutes"
+  schedule_expression = "rate(20 minutes)"
 }
 
 resource "aws_cloudwatch_event_target" "lambda_target_crypto_report" {
-  rule      = aws_cloudwatch_event_rule.every_2_minutes_crypto_report.name
+  rule      = aws_cloudwatch_event_rule.every_20_minutes_crypto_report.name
   target_id = "lambda-crypto-report-target"
   arn       = aws_lambda_function.lambda_crypto_report.arn
 }
@@ -76,5 +82,5 @@ resource "aws_lambda_permission" "allow_cloudwatch_invoke_crypto_report" {
   action        = "lambda:InvokeFunction"
   principal     = "events.amazonaws.com"
   function_name = aws_lambda_function.lambda_crypto_report.function_name
-  source_arn    = aws_cloudwatch_event_rule.every_2_minutes_crypto_report.arn
+  source_arn    = aws_cloudwatch_event_rule.every_20_minutes_crypto_report.arn
 }

@@ -6,26 +6,22 @@ import boto3
 from report.report import CryptoReport
 from mb_api.auth import MbAuthenticator
 
-# SQS client
+
 sqs_client = boto3.client('sqs', region_name='sa-east-1')
+try:
+    ssm_client = boto3.client('ssm', region_name='sa-east-1')
+    secrets = json.loads(ssm_client.get_parameter(Name="crypto_report_secrets")['Parameter']['Value'])
 
-# Define the queue URL
-queue_url = os.getenv('SQS_QUEUE_URL')
 
-mb_api_key = os.getenv('MB_ACCESS_KEY')
-mb_api_secret = os.getenv('MB_ACCESS_SECRET')
+    queue_url = secrets['SQS_QUEUE_URL']
 
-whatsapp_api_id = os.getenv('WHATSAPP_API_ID')
-whatsapp_api_to = os.getenv('WHATSAPP_API_TO')
+    mb_api_key = secrets['MB_ACCESS_KEY']
+    mb_api_secret = secrets['MB_ACCESS_SECRET']
 
-if (
-        not mb_api_key or
-        not mb_api_secret or
-        not queue_url or
-        not whatsapp_api_id or
-        not whatsapp_api_to
-):
-    raise Exception('Registre manualmente as chaves nas variáveis de ambiente')
+    whatsapp_api_id = secrets['WHATSAPP_API_ID']
+    whatsapp_api_to = secrets['WHATSAPP_API_TO']
+except Exception as e:
+    raise Exception(f'Registre manualmente as chaves nas variáveis de ambiente - {e}')
 
 def handler(event, context):
 
@@ -60,4 +56,4 @@ def handler(event, context):
 
 
 if __name__ == '__main__':
-    pass
+    handler('', '')
