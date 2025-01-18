@@ -59,3 +59,23 @@ resource "aws_iam_policy_attachment" "lambda_sqs_full_access" {
   roles      = [aws_iam_role.lambda_role.name]
   policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
 }
+
+resource "aws_cloudwatch_event_rule" "every_2_minutes" {
+  name        = "lambda-trigger-every-2-minutes"
+  description = "Trigger Lambda every 2 minutes"
+  schedule_expression = "rate(2 minutes)"
+}
+
+resource "aws_cloudwatch_event_target" "lambda_target" {
+  rule      = aws_cloudwatch_event_rule.every_2_minutes.name
+  target_id = "lambda-crypto-report-target"
+  arn       = aws_lambda_function.example.arn
+}
+
+resource "aws_lambda_permission" "allow_cloudwatch_invoke" {
+  statement_id  = "AllowCloudWatchInvoke"
+  action        = "lambda:InvokeFunction"
+  principal     = "events.amazonaws.com"
+  function_name = aws_lambda_function.example.function_name
+  source_arn    = aws_cloudwatch_event_rule.every_2_minutes.arn
+}
