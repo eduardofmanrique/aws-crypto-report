@@ -12,7 +12,7 @@ terraform {
 }
 
 resource "aws_iam_role" "lambda_role" {
-  name               = "lambda-basic-role"
+  name               = "lambda-basic-role-crypto-report"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -30,49 +30,24 @@ resource "aws_iam_role" "lambda_role" {
 resource "aws_iam_policy_attachment" "lambda_basic_policy" {
   name       = "lambda-basic-policy-attachment"
   roles      = [aws_iam_role.lambda_role.name]
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-}
-
-resource "aws_iam_policy" "s3_access_policy" {
-  name        = "s3-access-policy"
-  description = "Allow Lambda to access the S3 bucket for dependencies"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action   = "s3:GetObject"
-        Effect   = "Allow"
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-resource "aws_iam_policy_attachment" "lambda_s3_policy_attachment" {
-  name       = "lambda-s3-policy-attachment"
-  roles      = [aws_iam_role.lambda_role.name]
-  policy_arn = aws_iam_policy.s3_access_policy.arn
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole-crypto-report"
 }
 
 resource "aws_lambda_layer_version" "dependencies_layer" {
   filename   = "lambda_dependencies.zip"
-  layer_name = "lambda-dependencies"
+  layer_name = "lambda-dependencies-crypto-report"
   compatible_runtimes = ["python3.9"]
 }
 
 resource "aws_lambda_function" "example" {
-  function_name = "lambda-crypto-report"
+  function_name = "lambda-whatsapp-api"
   role          = aws_iam_role.lambda_role.arn
   handler       = "main.handler"
   runtime       = "python3.9"
   filename      = "lambda.zip"
   source_code_hash = filebase64sha256("lambda.zip")
   timeout       = 120
-  memory_size   = 1024
-  ephemeral_storage {
-    size = 1024
-  }
+  memory_size   = 300
   layers        = [
     "arn:aws:lambda:sa-east-1:336392948345:layer:AWSSDKPandas-Python39:29",
     aws_lambda_layer_version.dependencies_layer.arn
