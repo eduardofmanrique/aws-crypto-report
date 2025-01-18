@@ -28,13 +28,13 @@ resource "aws_iam_role" "lambda_role" {
 }
 
 resource "aws_iam_policy_attachment" "lambda_basic_policy" {
-  name       = "lambda-basic-policy-attachment"
+  name       = "lambda-basic-policy-attachment-crypto-report"
   roles      = [aws_iam_role.lambda_role.name]
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
 resource "aws_iam_policy_attachment" "lambda_sqs_full_access" {
-  name       = "lambda-sqs-full-access-attachment"
+  name       = "lambda-sqs-full-access-attachment-crypto-report"
   roles      = [aws_iam_role.lambda_role.name]
   policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
 }
