@@ -33,6 +33,12 @@ resource "aws_iam_policy_attachment" "lambda_basic_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+resource "aws_iam_policy_attachment" "lambda_sqs_full_access" {
+  name       = "lambda-sqs-full-access-attachment"
+  roles      = [aws_iam_role.lambda_role.name]
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
+}
+
 resource "aws_lambda_layer_version" "dependencies_layer" {
   filename   = "lambda_dependencies.zip"
   layer_name = "lambda-dependencies-crypto-report"
@@ -52,12 +58,6 @@ resource "aws_lambda_function" "example" {
     "arn:aws:lambda:sa-east-1:336392948345:layer:AWSSDKPandas-Python39:29",
     aws_lambda_layer_version.dependencies_layer.arn
   ]
-}
-
-resource "aws_iam_policy_attachment" "lambda_sqs_full_access" {
-  name       = "lambda-sqs-full-access-attachment"
-  roles      = [aws_iam_role.lambda_role.name]
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
 }
 
 resource "aws_cloudwatch_event_rule" "every_2_minutes" {
