@@ -49,7 +49,7 @@ resource "aws_lambda_function" "lambda_crypto_report" {
   handler          = "main.handler"
   runtime          = "python3.9"
   filename         = "lambda.zip"
-  source_code_hash = filebase64sha256("lambda.zip")
+  source_code_hash = fileexists("lambda.zip") ? filebase64sha256("lambda.zip") : null
   timeout          = 120
   memory_size      = 300
   layers           = [
