@@ -68,7 +68,7 @@ resource "aws_lambda_function" "lambda_crypto_report" {
 resource "aws_cloudwatch_event_rule" "every_20_minutes_crypto_report" {
   name        = "lambda-trigger-every-20-minutes"
   description = "Trigger Lambda every 20 minutes"
-  schedule_expression = "rate(4 minutes)"
+  schedule_expression = "rate(20 minutes)"
 }
 
 resource "aws_cloudwatch_event_target" "lambda_target_crypto_report" {

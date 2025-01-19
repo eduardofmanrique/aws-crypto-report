@@ -106,7 +106,7 @@ class CryptoReport:
         data = (df[['symbol', 'last', 'variation']]
                 .drop_duplicates()
                 .to_dict(orient='records'))
-        return " *|* ".join([f"{item['symbol']} | R$ {item['last']} | {item['variation']}" for item in data])
+        return "\n\n".join([f"{item['symbol']} | R$ {item['last']} | {item['variation']}" for item in data])
 
     def gen_report(self):
         df = self.get_data()
