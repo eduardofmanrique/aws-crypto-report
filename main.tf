@@ -66,7 +66,7 @@ resource "aws_lambda_function" "lambda_crypto_report" {
 
 
 resource "aws_cloudwatch_event_rule" "every_hour_crypto_report" {
-  name        = "lambda-trigger-every-hour"
+  name        = "lambda-trigger-every-hour-crypto-report"
   description = "Trigger Lambda every hour"
   schedule_expression = "rate(1 hour)"
 }
